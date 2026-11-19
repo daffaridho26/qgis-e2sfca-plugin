@@ -10,8 +10,14 @@
     <height>581</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>0</width>
+    <height>4</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>E2SFCA Accessibility Calculator (Nama resmi yang tampil di QGIS)</string>
+   <string>E2SFCA Accessibility Calculator</string>
   </property>
   <widget class="QGroupBox" name="group_spatial_input">
    <property name="geometry">
@@ -39,6 +45,9 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Select the facility point layer (Supply).</string>
+    </property>
    </widget>
    <widget class="QComboBox" name="combo_pop_layer">
     <property name="geometry">
@@ -53,6 +62,9 @@
      <font>
       <pointsize>9</pointsize>
      </font>
+    </property>
+    <property name="toolTip">
+     <string>Select the settlement centroid or population point layer (Demand).</string>
     </property>
    </widget>
    <widget class="QComboBox" name="combo_road_layer">
@@ -69,6 +81,9 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Select the road network line layer for network routing analysis.</string>
+    </property>
    </widget>
    <widget class="QLabel" name="label_1">
     <property name="geometry">
@@ -83,6 +98,9 @@
      <font>
       <pointsize>9</pointsize>
      </font>
+    </property>
+    <property name="toolTip">
+     <string>Select the facility point layer (Supply).</string>
     </property>
     <property name="text">
      <string>Fasility Layer (Supply):</string>
@@ -102,6 +120,9 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Select the road network line layer for network routing analysis.</string>
+    </property>
     <property name="text">
      <string>Road Network Layer:</string>
     </property>
@@ -119,6 +140,9 @@
      <font>
       <pointsize>9</pointsize>
      </font>
+    </property>
+    <property name="toolTip">
+     <string>Select the settlement centroid or population point layer (Demand).</string>
     </property>
     <property name="text">
      <string>Population Layer (Demand):</string>
@@ -151,6 +175,9 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Set the maximum travel time/distance threshold (cut-off threshold d0).</string>
+    </property>
    </widget>
    <widget class="QComboBox" name="combo_capacity_field">
     <property name="geometry">
@@ -165,6 +192,9 @@
      <font>
       <pointsize>9</pointsize>
      </font>
+    </property>
+    <property name="toolTip">
+     <string>Select the facility capacity attribute field (Sj).</string>
     </property>
    </widget>
    <widget class="QComboBox" name="combo_pop_field">
@@ -181,6 +211,9 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Select the population count attribute field (Pk) for each settlement location.</string>
+    </property>
    </widget>
    <widget class="QComboBox" name="combo_speed_field">
     <property name="geometry">
@@ -196,6 +229,9 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Select the average travel speed attribute field based on road classification.</string>
+    </property>
    </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
@@ -210,6 +246,9 @@
      <font>
       <pointsize>9</pointsize>
      </font>
+    </property>
+    <property name="toolTip">
+     <string>Select the facility capacity attribute field (Sj).</string>
     </property>
     <property name="text">
      <string>Facility Capacity Field (Sj):</string>
@@ -229,6 +268,9 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Select the population count attribute field (Pk) for each settlement location.</string>
+    </property>
     <property name="text">
      <string>Population Field (Pk):</string>
     </property>
@@ -246,6 +288,9 @@
      <font>
       <pointsize>9</pointsize>
      </font>
+    </property>
+    <property name="toolTip">
+     <string>Select the average travel speed attribute field based on road classification.</string>
     </property>
     <property name="text">
      <string>Road Speed / Impebance Field:</string>
@@ -265,6 +310,13 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Network Travel Impedance Criterion.
+
+Options:
+- Travel Time (minutes): calculated using road speed and segment length
+- Network Distance (meters): calculated based on network shortest path</string>
+    </property>
     <property name="text">
      <string>Primary Impebance Type:</string>
     </property>
@@ -283,6 +335,9 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Use travel time (minutes) as network travel impedance.</string>
+    </property>
     <property name="text">
      <string>Travel Time (minutes)</string>
     </property>
@@ -300,6 +355,9 @@
      <font>
       <pointsize>9</pointsize>
      </font>
+    </property>
+    <property name="toolTip">
+     <string>Use network distance (meters) as travel impedance.</string>
     </property>
     <property name="text">
      <string>Network Distance (meters)</string>
@@ -343,6 +401,15 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Continuous Gaussian distance decay function that defines how the accessibility influence decreases with travel time/distance.
+
+Options:
+- Continuous Gaussian: smooth, bell-shaped falloff within threshold (d0)
+- Step 1 (Sub-zone 1): 0 - d1 (High weight)
+- Step 2 (Sub-zone 2): d1 - d2 (Medium weight)
+- Step 3 (Sub-zone 3): d2 - d0 (Low weight)</string>
+    </property>
     <property name="text">
      <string>Cut-off Threshold (d0)</string>
     </property>
@@ -363,6 +430,12 @@
      <font>
       <pointsize>9</pointsize>
      </font>
+    </property>
+    <property name="toolTip">
+     <string>Peluruhan Gaussian (Gaussian Decay):
+• Konsep: Memodelkan perilaku perjalanan masyarakat secara intuitif menggunakan kurva peluruhan bergradasi halus (berbentuk kurva-S).
+• Karakteristik: Memberikan bobot tertinggi (W=1.00) di titik asal terdekat, menurun cukup cepat di area menengah, dan melambat mendekati nol saat mencapai ambang waktu maksimum (d0).
+• Keunggulan: Menghilangkan asumsi &quot;diskretisasi kaku&quot; di mana seluruh titik dalam satu zona dianggap memiliki akses yang sama.</string>
     </property>
     <property name="text">
      <string>Gaussian Decay Function</string>
@@ -416,6 +489,9 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Check to automatically render the thematic output layer on the QGIS canvas.</string>
+    </property>
     <property name="text">
      <string>Automatically Load Output Layer into QGIS canvas</string>
     </property>
@@ -458,6 +534,9 @@
       <pointsize>9</pointsize>
      </font>
     </property>
+    <property name="toolTip">
+     <string>Specify the destination folder and output file path (.gpkg/.shp).</string>
+    </property>
     <property name="lineWidth">
      <number>6</number>
     </property>
@@ -490,11 +569,17 @@
   <widget class="QLabel" name="label_12">
    <property name="geometry">
     <rect>
-     <x>400</x>
+     <x>410</x>
      <y>10</y>
-     <width>201</width>
+     <width>251</width>
      <height>31</height>
     </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>2</width>
+     <height>7</height>
+    </size>
    </property>
    <property name="font">
     <font>
@@ -514,7 +599,7 @@
   <widget class="QLabel" name="label_13">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>30</x>
      <y>400</y>
      <width>201</width>
      <height>31</height>
@@ -538,7 +623,7 @@
   <widget class="QLabel" name="label_14">
    <property name="geometry">
     <rect>
-     <x>20</x>
+     <x>30</x>
      <y>10</y>
      <width>201</width>
      <height>31</height>
