@@ -19,10 +19,25 @@ from qgis.analysis import (
     QgsGraphBuilder,
     QgsGraphAnalyzer,
 )
-import csv
+from qgis.gui import QgsFileWidget
+
 FORM_CLASS, _ = uic.loadUiType(
     os.path.join(os.path.dirname(__file__), 'e2sfca_plugin_dialog_base.ui')
 )
+
+# Konstanta pilihan dropdown
+IMPEDANCE_DISTANCE = "Travel Distance"
+IMPEDANCE_TIME = "Travel Time"
+
+DECAY_GAUSSIAN = "Gaussian Function"
+DECAY_QUADRATIC = "Quadratic Function"
+DECAY_EXPONENTIAL = "Exponential Function"
+
+TEMP_PLACEHOLDER = "[Save to temporary file]"
+NO_FIELD = ""  # untuk field opsional
+
+
+HELP_FILE = os.path.join(os.path.dirname(__file__), "help.html")
 
 
 class E2SFCAPluginDialog(QtWidgets.QDialog, FORM_CLASS):
@@ -31,29 +46,95 @@ class E2SFCAPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         super(E2SFCAPluginDialog, self).__init__(parent)
         self.setupUi(self)
         self.iface = iface
-
-        # 1. Atur Judul Window
         self.setWindowTitle("E2SFCA Accessibility Calculator")
 
-        # 2. Buka batas maksimal threshold (supaya bisa isi ribuan meter untuk mode jarak)
-        self.spin_threshold.setRange(1, 999999)
+        self._is_running = False
+        self._cancel_requested = False
 
-        # 3. Muat Layer awal
+        # ---------- Impedance ----------
+        self.comboBox_6.clear()
+        self.comboBox_6.addItems([IMPEDANCE_DISTANCE, IMPEDANCE_TIME])
+
+        # ---------- Default speed ----------
+        self.doubleSpinBox.setRange(1.0, 300.0)
+        self.doubleSpinBox.setDecimals(1)
+        self.doubleSpinBox.setValue(30.0)
+
+        # ---------- Decay function ----------
+        self.comboBox_8.clear()
+        self.comboBox_8.addItems([DECAY_GAUSSIAN, DECAY_QUADRATIC, DECAY_EXPONENTIAL])
+
+        # ---------- Exponential beta ----------
+        self.doubleSpinBox_3.setDecimals(2)
+        self.doubleSpinBox_3.setRange(0.01, 50.0)
+        self.doubleSpinBox_3.setSingleStep(0.1)
+        self.doubleSpinBox_3.setValue(3.0)
+
+        # ---------- Cut-off ----------
+        self.doubleSpinBox_2.setDecimals(2)
+        self.doubleSpinBox_2.setRange(0.01, 9999999.0)
+
+        # ---------- Direction value ----------
+        self.lineEdit.setPlaceholderText("contoh: F / 1 / yes")
+        self.lineEdit_2.setPlaceholderText("contoh: T / -1 / reverse")
+        self.lineEdit_3.setPlaceholderText("contoh: B / 0 / no")
+
+        # ---------- Output file (mQgsFileWidget) ----------
+        self.mQgsFileWidget.setStorageMode(QgsFileWidget.SaveFile)
+        self.mQgsFileWidget.setFilter(
+            "GeoPackage (*.gpkg);;ESRI Shapefile (*.shp)"
+        )
+        self.mQgsFileWidget.setDialogTitle("Simpan Hasil E2SFCA")
+        # Path kosong = simpan ke file sementara
+        out_edit = self.mQgsFileWidget.lineEdit()
+        out_edit.setPlaceholderText(TEMP_PLACEHOLDER)
+        self.mQgsFileWidget.setToolTip(
+            "Kosongkan untuk menyimpan hasil sebagai file sementara (temporary file).")
+        act_temp = QtWidgets.QAction("Save to temporary file", out_edit)
+        act_temp.setToolTip("Simpan ke file sementara")
+        act_temp.setIcon(self.style().standardIcon(
+            QtWidgets.QStyle.SP_DialogResetButton))
+        act_temp.triggered.connect(self.use_temporary_output)
+        out_edit.addAction(act_temp, QtWidgets.QLineEdit.TrailingPosition)
+
+        # ---------- Progress bar ----------
+        self.progressBar.setRange(0, 100)
+        self.progressBar.setValue(0)
+
+        # ---------- Description box (textBrowser) & toggle (toolButton_4) ----------
+        self._help_width = self.textBrowser.sizeHint().width()
+        self.textBrowser.setOpenExternalLinks(True)
+        self.load_help()
+        self.toolButton_4.setCheckable(True)
+        self.toolButton_4.setChecked(True)
+        self.toolButton_4.setText("▶")
+        self.toolButton_4.setToolTip("Tampilkan / sembunyikan deskripsi")
+        self.toolButton_4.toggled.connect(self.toggle_help)
+
+        # ---------- Sinyal ----------
+        self.comboBox.currentIndexChanged.connect(self.populate_facility_fields)
+        self.comboBox_3.currentIndexChanged.connect(self.populate_pop_fields)
+        self.comboBox_5.currentIndexChanged.connect(self.populate_road_fields)
+
+        self.toolButton.clicked.connect(
+            lambda: self.browse_layer(self.comboBox, "polypoint"))
+        self.toolButton_2.clicked.connect(
+            lambda: self.browse_layer(self.comboBox_3, "polypoint"))
+        self.toolButton_3.clicked.connect(
+            lambda: self.browse_layer(self.comboBox_5, "line"))
+
+        self.comboBox_9.currentIndexChanged.connect(self.toggle_direction_widgets)
+        self.comboBox_6.currentIndexChanged.connect(self.toggle_impedance_widgets)
+        self.comboBox_8.currentIndexChanged.connect(self.toggle_decay_widgets)
+
+        self.pushButton_2.clicked.connect(self.run_analysis)
+        self.pushButton.clicked.connect(self.cancel_or_close)
+
+        # ---------- Isi awal ----------
         self.populate_layers()
-        # 4. Hubungkan Event perubahan Layer ke Dropdown Atribut
-        self.combo_facility_layer.currentIndexChanged.connect(
-            self.populate_facility_fields
-        )
-        self.combo_pop_layer.currentIndexChanged.connect(
-            self.populate_pop_fields
-        )
-        self.combo_road_layer.currentIndexChanged.connect(
-            self.populate_road_fields
-        )
-
-        # 5. Hubungkan Tombol Run dan Cancel
-        self.btn_cancel.clicked.connect(self.reject)
-        self.btn_run.clicked.connect(self.run_analysis)
+        self.toggle_impedance_widgets()
+        self.toggle_direction_widgets()
+        self.toggle_decay_widgets()
 
     def populate_layers(self):
         """Membaca semua layer yang terbuka di QGIS"""
@@ -82,6 +163,8 @@ class E2SFCAPluginDialog(QtWidgets.QDialog, FORM_CLASS):
         self.populate_facility_fields()
         self.populate_pop_fields()
         self.populate_road_fields()
+
+        # --- baru sampai di sini (tedy)
 
     def populate_facility_fields(self):
         """Memuat kolom angka dari layer Fasilitas/RS"""
