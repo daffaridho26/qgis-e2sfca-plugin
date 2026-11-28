@@ -1,0 +1,32 @@
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# QGIS Plugin & Qt Designer artifacts
+*.ui~
+*.bak
+resources_rc.py
+*.zip
+build/
+dist/
+
+# Test & coverage cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor & OS local files
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+
+# Logs & temporary files
+*.log
+*.tmp
